@@ -1,0 +1,11 @@
+# AWS Braket requirements for running Grover's algorithm
+
+# AWS Braket SDK - for quantum circuit execution
+amazon-braket-sdk>=1.104.0
+
+# AWS SDK for Python - for S3 and AWS service access
+boto3>=1.34.0
+
+# Optional but recommended:
+# matplotlib - for visualization
+# notebook - for Jupyter notebook execution

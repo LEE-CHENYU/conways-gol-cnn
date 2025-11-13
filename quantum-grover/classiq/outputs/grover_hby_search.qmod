@@ -1,0 +1,82 @@
+qfunc uniform_superposition(reg: qbit[]) {
+  apply_to_all(lambda(qb) {
+    H(qb);
+  }, reg);
+}
+
+qfunc prepare_minus_state(x: qbit) {
+  X(x);
+  H(x);
+}
+
+qperm oracle_black_box(res: qbit, const x: qnum) {
+  res ^= ((x == 23533) | (x == 27566)) | (x == 21650);
+}
+
+@disable_perm_check
+qperm oracle_pixels(const pixels: qbit[]) {
+  aux: qbit;
+  allocate(aux);
+  prepare_minus_state(aux);
+  x: qnum;
+  pixels -> x;
+  oracle_black_box(aux, x);
+  x -> pixels;
+  invert {
+    prepare_minus_state(aux);
+  }
+  free(aux);
+}
+
+qperm not_equal_zero(aux_bit: qbit, const val: qnum) {
+  aux_bit ^= val == 0;
+  X(aux_bit);
+}
+
+qfunc initial_state_diffuser(pixels: qbit[]) {
+  uniform_superposition(pixels);
+  packed: qnum;
+  pixels -> packed;
+  aux: qbit;
+  allocate(aux);
+  prepare_minus_state(aux);
+  not_equal_zero(aux, packed);
+  invert {
+    prepare_minus_state(aux);
+  }
+  free(aux);
+  packed -> pixels;
+  invert {
+    uniform_superposition(pixels);
+  }
+}
+
+qfunc my_grover_operator(pixels: qbit[]) {
+  oracle_pixels(pixels);
+  initial_state_diffuser(pixels);
+}
+
+qfunc main(output pixels: qbit[]) {
+  allocate(15, pixels);
+  uniform_superposition(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+  my_grover_operator(pixels);
+}
