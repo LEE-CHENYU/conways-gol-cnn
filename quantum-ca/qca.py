@@ -1,4 +1,30 @@
-# HYHB quantum “QCA” toy on IonQ via Azure Quantum
+"""
+HYHB Quantum Cellular Automata (QCA) - Rigetti Implementation
+
+Generates letter patterns (H, Y, H, B) using quantum circuits that mimic
+cellular automata behavior. Uses 5-qubit circuits with neighbor entanglement
+and quantum measurement statistics to create organic-looking letter patterns.
+
+BACKENDS:
+  - rigetti.sim.qvm: Free quantum simulator (default)
+  - rigetti.qpu.ankaa-3: Real 84-qubit quantum computer (~$0.04/job)
+
+COST ESTIMATES:
+  - Simulator: $0.00 (unlimited free usage)
+  - QPU: ~$0.16 total for HYHB (4 letters × $0.04)
+
+USAGE:
+  python quantum-ca/qca.py                    # Free simulator (default)
+
+  # To use real quantum hardware, edit main() and uncomment QPU line
+
+REQUIREMENTS:
+  pip install azure-quantum qiskit 'azure-quantum[qiskit]' pillow numpy
+
+OUTPUT:
+  Animated GIF with 4 frames showing quantum-perturbed letter patterns
+  Location: out/HYHB_qca_simulator.gif
+"""
 
 from azure.quantum import Workspace
 from azure.quantum.qiskit import AzureQuantumProvider
@@ -19,9 +45,11 @@ workspace = Workspace(
 
 provider = AzureQuantumProvider(workspace)
 
-# For testing use the simulator; for real trapped-ion hardware use "ionq.qpu"
-backend = provider.get_backend("ionq.simulator")
-# backend = provider.get_backend("ionq.qpu")   # <- switch to this when ready
+# Backend selection: use Rigetti simulator (free) or QPU (Ankaa-3, ~$0.04/job)
+# Simulator: rigetti.sim.qvm (free, unlimited)
+# QPU: rigetti.qpu.ankaa-3 (~$0.02 per 10ms execution time)
+backend = provider.get_backend("rigetti.sim.qvm")
+# backend = provider.get_backend("rigetti.qpu.ankaa-3")   # <- switch for real quantum hardware
 
 
 # ================================
@@ -186,14 +214,31 @@ def bitmap_to_image(bitmap, scale=40, on_color=0, off_color=255):
 # 7. Put it all together for HYHB
 # ================================
 
-def generate_hyhb_gif(output_path="HYHB_qca.gif", use_qpu=False):
+def generate_hyhb_gif(output_path="HYHB_qca.gif", backend_type="simulator"):
+    """Generate HYHB animated GIF using quantum circuits.
+
+    Args:
+        output_path: Path to save the output GIF
+        backend_type: "simulator" (free) or "qpu" (Ankaa-3, ~$0.16 total)
+    """
     letters = ["H", "Y", "H", "B"]
     frames = []
 
+    # Select backend and display cost estimate
+    global backend
+    if backend_type == "qpu":
+        backend = provider.get_backend("rigetti.qpu.ankaa-3")
+        estimated_cost = len(letters) * 0.04  # ~$0.04 per job
+        print(f"\n{'='*60}")
+        print(f"WARNING: Using Rigetti QPU - Estimated cost: ${estimated_cost:.2f}")
+        print(f"{'='*60}\n")
+    else:
+        backend = provider.get_backend("rigetti.sim.qvm")
+        print(f"\n{'='*60}")
+        print(f"Using Rigetti Simulator - Cost: $0.00 (FREE)")
+        print(f"{'='*60}\n")
+
     for letter in letters:
-        if use_qpu:
-            global backend
-            backend = provider.get_backend("ionq.qpu")
 
         probs, counts = run_qca_and_get_column_probs(letter, shots=256)
         print(f"Letter {letter} column probabilities: {probs}")
@@ -216,6 +261,9 @@ def generate_hyhb_gif(output_path="HYHB_qca.gif", use_qpu=False):
 
 if __name__ == "__main__":
     os.makedirs("out", exist_ok=True)
-    generate_hyhb_gif(output_path="out/HYHB_qca.gif", use_qpu=False)
-    # When you're happy with the simulator look, flip use_qpu=True
-    # generate_hyhb_gif(output_path="out/HYHB_qca_ionq_qpu.gif", use_qpu=True)
+
+    # Generate with free simulator (default)
+    generate_hyhb_gif(output_path="out/HYHB_qca_simulator.gif", backend_type="simulator")
+
+    # To use real quantum hardware (costs ~$0.16), uncomment below:
+    # generate_hyhb_gif(output_path="out/HYHB_qca_qpu.gif", backend_type="qpu")
