@@ -260,10 +260,44 @@ def generate_hyhb_gif(output_path="HYHB_qca.gif", backend_type="simulator"):
 
 
 if __name__ == "__main__":
+    import sys
     os.makedirs("out", exist_ok=True)
 
-    # Generate with free simulator (default)
-    generate_hyhb_gif(output_path="out/HYHB_qca_simulator.gif", backend_type="simulator")
+    # Check for command-line argument to run multiple QPU tests
+    if len(sys.argv) > 1 and sys.argv[1] == "--qpu-multi":
+        num_runs = int(sys.argv[2]) if len(sys.argv) > 2 else 5
+        total_cost = num_runs * 0.16
 
-    # To use real quantum hardware (costs ~$0.16), uncomment below:
-    # generate_hyhb_gif(output_path="out/HYHB_qca_qpu.gif", backend_type="qpu")
+        print(f"\n{'='*70}")
+        print(f"  REAL QUANTUM HARDWARE - MULTIPLE RUNS")
+        print(f"  Number of runs: {num_runs}")
+        print(f"  Estimated total cost: ${total_cost:.2f}")
+        print(f"  This will show variations in quantum noise across runs")
+        print(f"{'='*70}\n")
+
+        response = input(f"Proceed with {num_runs} QPU runs? (yes/no): ")
+        if response.lower() != 'yes':
+            print("Cancelled.")
+            sys.exit(0)
+
+        print(f"\nStarting {num_runs} QPU runs...\n")
+        for i in range(num_runs):
+            print(f"\n{'─'*70}")
+            print(f"  QPU RUN {i+1}/{num_runs}")
+            print(f"{'─'*70}")
+            generate_hyhb_gif(
+                output_path=f"out/HYHB_qca_qpu_run{i+1:02d}.gif",
+                backend_type="qpu"
+            )
+
+        print(f"\n{'='*70}")
+        print(f"  ✓ All {num_runs} QPU runs completed!")
+        print(f"  Output files: out/HYHB_qca_qpu_run01.gif ... run{num_runs:02d}.gif")
+        print(f"{'='*70}\n")
+
+    else:
+        # Generate with free simulator (default)
+        generate_hyhb_gif(output_path="out/HYHB_qca_simulator.gif", backend_type="simulator")
+
+        # To use real quantum hardware (costs ~$0.16), uncomment below:
+        # generate_hyhb_gif(output_path="out/HYHB_qca_qpu.gif", backend_type="qpu")
